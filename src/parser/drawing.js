@@ -1,4 +1,5 @@
 export function parseDrawing(text) {
+  if (!text) return [];
   return text
     .toLowerCase()
     // numbers
@@ -8,7 +9,7 @@ export function parseDrawing(text) {
     .trim()
     .replace(/\s+/g, ' ')
     .split(/\s(?=[mnlbspc])/)
-    .map(cmd => (
+    .map((cmd) => (
       cmd.split(' ')
         .filter((x, i) => !(i && Number.isNaN(x * 1)))
     ));

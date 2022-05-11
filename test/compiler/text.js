@@ -4,17 +4,66 @@ import { compileStyles } from '../../src/compiler/styles.js';
 import { compileText } from '../../src/compiler/text.js';
 
 describe('text compiler', () => {
-  const style = [
-    ['Default', 'Arial', '20', '&H00FFFFFF', '&H000000FF', '&H000000', '&H00000000', '-1', '0', '0', '0', '100', '100', '0', '0', '1', '2', '2', '2', '10', '10', '10', '0'],
-    ['alt', 'Arial', '24', '&H00FFFFFF', '&H000000FF', '&H000000', '&H00000000', '-1', '0', '0', '0', '100', '100', '0', '0', '3', '2', '2', '2', '10', '10', '10', '0'],
-  ];
-  const format = ['Name', 'Fontname', 'Fontsize', 'PrimaryColour', 'SecondaryColour', 'OutlineColour', 'BackColour', 'Bold', 'Italic', 'Underline', 'StrikeOut', 'ScaleX', 'ScaleY', 'Spacing', 'Angle', 'BorderStyle', 'Outline', 'Shadow', 'Alignment', 'MarginL', 'MarginR', 'MarginV', 'Encoding'];
-  const styles = compileStyles({ info: { WrapStyle: 0 }, style, format });
-  const name = 'Default';
+  const styles = compileStyles({
+    info: { WrapStyle: 0 },
+    style: [
+      {
+        Name: 'Default',
+        Fontname: 'Arial',
+        Fontsize: '20',
+        PrimaryColour: '&H00FFFFFF',
+        SecondaryColour: '&H000000FF',
+        OutlineColour: '&H000000',
+        BackColour: '&H00000000',
+        Bold: '-1',
+        Italic: '0',
+        Underline: '0',
+        StrikeOut: '0',
+        ScaleX: '100',
+        ScaleY: '100',
+        Spacing: '0',
+        Angle: '0',
+        BorderStyle: '1',
+        Outline: '2',
+        Shadow: '2',
+        Alignment: '2',
+        MarginL: '10',
+        MarginR: '10',
+        MarginV: '10',
+        Encoding: '0',
+      },
+      {
+        Name: 'alt',
+        Fontname: 'Arial',
+        Fontsize: '24',
+        PrimaryColour: '&H00FFFFFF',
+        SecondaryColour: '&H000000FF',
+        OutlineColour: '&H000000',
+        BackColour: '&H00000000',
+        Bold: '-1',
+        Italic: '0',
+        Underline: '0',
+        StrikeOut: '0',
+        ScaleX: '100',
+        ScaleY: '100',
+        Spacing: '0',
+        Angle: '0',
+        BorderStyle: '3',
+        Outline: '2',
+        Shadow: '2',
+        Alignment: '2',
+        MarginL: '10',
+        MarginR: '10',
+        MarginV: '10',
+        Encoding: '0',
+      },
+    ],
+  });
+  const style = 'Default';
 
   it('should compile text with drawing', () => {
     const { parsed } = parseText('{\\p1}m 0 0 l 1 0 1 1');
-    const { slices } = compileText({ styles, name, parsed });
+    const { slices } = compileText({ styles, style, parsed });
     expect(slices[0].fragments[0]).to.deep.equal({
       tag: { p: 1 },
       text: '',
@@ -34,7 +83,7 @@ describe('text compiler', () => {
 
   it('should compile global tags', () => {
     const { parsed } = parseText('{\\an1\\a7\\pos(1,2)\\org(1,2)\\move(1,2,3,4)\\fade(1,2)\\fad(3,4)\\clip(1,2,3,4)}bla bla');
-    const { alignment, pos, org, move, fade, clip } = compileText({ styles, name, parsed });
+    const { alignment, pos, org, move, fade, clip } = compileText({ styles, style, parsed });
     expect(alignment).to.equal(1);
     expect(pos).to.deep.equal({ x: 1, y: 2 });
     expect(org).to.deep.equal({ x: 1, y: 2 });
@@ -50,27 +99,21 @@ describe('text compiler', () => {
 
   it('should compile text with \\r', () => {
     const { parsed } = parseText('{\\fr30}a{\\r}b{\\fr60}c{\\ralt}d');
-    const { slices } = compileText({ styles, name, parsed });
+    const { slices } = compileText({ styles, style, parsed });
     expect(slices).to.deep.equal([
       {
-        name: 'Default',
-        borderStyle: 1,
-        tag: styles.Default.tag,
+        style: 'Default',
         fragments: [{ tag: { frz: 30 }, text: 'a', drawing: null }],
       },
       {
-        name: 'Default',
-        borderStyle: 1,
-        tag: styles.Default.tag,
+        style: 'Default',
         fragments: [
           { tag: {}, text: 'b', drawing: null },
           { tag: { frz: 60 }, text: 'c', drawing: null },
         ],
       },
       {
-        name: 'alt',
-        borderStyle: 3,
-        tag: styles.alt.tag,
+        style: 'alt',
         fragments: [{ tag: {}, text: 'd', drawing: null }],
       },
     ]);
@@ -78,7 +121,7 @@ describe('text compiler', () => {
 
   it('should compile text with \\t', () => {
     const { parsed } = parseText('{\\t(\\frx30)\\t(0,500,\\fry60)\\t(\\frz90)\\t(0,500,1,\\frz60)}foo');
-    const { slices } = compileText({ styles, name, parsed, start: 0, end: 1 });
+    const { slices } = compileText({ styles, style, parsed, start: 0, end: 1 });
     expect(slices[0].fragments[0].tag).to.deep.equal({
       t: [
         { t1: 0, t2: 1000, accel: 1, tag: { frx: 30 } },
@@ -91,7 +134,7 @@ describe('text compiler', () => {
 
   it('should inherit tag from previous fragment', () => {
     const { parsed } = parseText('{\\frx30}a{\\fry60}b{\\frx150\\frz120}c{\\r\\t(\\frx30)}d{\\t(\\fry60)}e');
-    const { slices } = compileText({ styles, name, parsed, start: 0, end: 1 });
+    const { slices } = compileText({ styles, style, parsed, start: 0, end: 1 });
     expect(slices[0].fragments).to.deep.equal([
       { tag: { frx: 30 }, text: 'a', drawing: null },
       { tag: { frx: 30, fry: 60 }, text: 'b', drawing: null },
@@ -106,16 +149,32 @@ describe('text compiler', () => {
     ]);
   });
 
+  it('should not inherit karaoke tags from previous fragment', () => {
+    const { parsed } = parseText('{\\k10}And {\\k5}now {\\k20}for {\\kf50}ka{\\kf20}ra{\\K70}o{\\K10}ke{\\k0}!{\\kt100\\k30}!!');
+    const { slices } = compileText({ styles, style, parsed, start: 0, end: 1 });
+    expect(slices[0].fragments).to.deep.equal([
+      { drawing: null, text: 'And ', tag: { k: 10 } },
+      { drawing: null, text: 'now ', tag: { k: 5 } },
+      { drawing: null, text: 'for ', tag: { k: 20 } },
+      { drawing: null, text: 'ka', tag: { kf: 50 } },
+      { drawing: null, text: 'ra', tag: { kf: 20 } },
+      { drawing: null, text: 'o', tag: { kf: 70 } },
+      { drawing: null, text: 'ke', tag: { kf: 10 } },
+      { drawing: null, text: '!', tag: { k: 0 } },
+      { drawing: null, text: '!!', tag: { kt: 100, k: 30 } },
+    ]);
+  });
+
   it('should not create fragment without text and drawing', () => {
     const { parsed } = parseText('{\\b1}{\\p1}m 0 0 l 1 0 1 1{\\p0}');
-    const { slices } = compileText({ styles, name, parsed });
+    const { slices } = compileText({ styles, style, parsed });
     expect(slices[0].fragments[0].tag).to.deep.equal({ p: 1, b: 1 });
     expect(slices[0].fragments.length).to.equal(1);
   });
 
   it('should merge two fragments if the latter has no tag', () => {
     const { parsed } = parseText('foo{\\a1}bar{\\an2}baz');
-    const { slices } = compileText({ styles, name, parsed });
+    const { slices } = compileText({ styles, style, parsed });
     expect(slices[0].fragments).to.deep.equal([
       { tag: {}, text: 'foobarbaz', drawing: null },
     ]);

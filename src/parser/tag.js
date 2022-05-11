@@ -8,7 +8,7 @@ const numTags = [
   'be', 'blur', 'bord', 'xbord', 'ybord', 'shad', 'xshad', 'yshad',
 ];
 
-const numRegexs = numTags.map(nt => ({ name: nt, regex: new RegExp(`^${nt}-?\\d`) }));
+const numRegexs = numTags.map((nt) => ({ name: nt, regex: new RegExp(`^${nt}-?\\d`) }));
 
 export function parseTag(text) {
   const tag = {};
@@ -34,13 +34,13 @@ export function parseTag(text) {
   } else if (/^alpha&?H?[0-9a-f]+/i.test(text)) {
     [, tag.alpha] = text.match(/^alpha&?H?([0-9a-f]+)/i);
     tag.alpha = `00${tag.alpha}`.slice(-2);
-  } else if (/^(?:pos|org|move|fad|fade)\(/.test(text)) {
+  } else if (/^(?:pos|org|move|fad|fade)\([^)]+/.test(text)) {
     const [, key, value] = text.match(/^(\w+)\((.*?)\)?$/);
     tag[key] = value
       .trim()
       .split(/\s*,\s*/)
       .map(Number);
-  } else if (/^i?clip/.test(text)) {
+  } else if (/^i?clip\([^)]+/.test(text)) {
     const p = text
       .match(/^i?clip\((.*?)\)?$/)[1]
       .trim()
@@ -65,7 +65,7 @@ export function parseTag(text) {
     const p = text
       .match(/^t\((.*?)\)?$/)[1]
       .trim()
-      .replace(/\\.*/, x => x.replace(/,/g, '\n'))
+      .replace(/\\.*/, (x) => x.replace(/,/g, '\n'))
       .split(/\s*,\s*/);
     if (!p[0]) return tag;
     tag.t = {
